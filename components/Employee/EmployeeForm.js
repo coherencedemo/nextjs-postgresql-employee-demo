@@ -1,68 +1,99 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 
-const EmployeeForm = ({ employee, onSubmit, isEditing }) => {
-  const [formData, setFormData] = useState(employee || {
+const EmployeeForm = ({ employee, onSubmit }) => {
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
   });
 
+  const router = useRouter();
+
+  useEffect(() => {
+    if (employee) {
+      setFormData(employee);
+    }
+  }, [employee]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    try {
+      if (employee) {
+        // Edit existing employee
+        const response = await fetch(`/api/employees/${employee.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          const updatedEmployee = await response.json();
+          onSubmit(updatedEmployee);
+          router.push('/');
+        } else {
+          console.error('Error updating employee:', await response.text());
+        }
+      } else {
+        // Create new employee
+        onSubmit(formData);
+        setFormData({ name: '', email: '', phone: '' });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto">
-      <div className="mb-4">
-        <label htmlFor="name" className="block font-bold mb-2">
-          Name
-        </label>
+    <form onSubmit={handleSubmit}>
+      <div>
+        <label htmlFor="name">Name</label>
         <input
           type="text"
           id="name"
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded"
           required
         />
       </div>
-      <div className="mb-4">
-        <label htmlFor="email" className="block font-bold mb-2">
-          Email
-        </label>
+      <div>
+        <label htmlFor="email">Email</label>
         <input
           type="email"
           id="email"
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded"
           required
         />
       </div>
-      <div className="mb-4">
-        <label htmlFor="phone" className="block font-bold mb-2">
-          Phone
-        </label>
+      <div>
+        <label htmlFor="phone">Phone</label>
         <input
           type="tel"
           id="phone"
           name="phone"
           value={formData.phone}
           onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded"
           required
         />
       </div>
-      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-        {isEditing ? 'Update Employee' : 'Create Employee'}
+      <button type="submit">
+        {employee ? 'Update Employee' : 'Add Employee'}
       </button>
+      {employee && (
+        <button type="button" onClick={() => router.push('/')}>
+          Cancel
+        </button>
+      )}
     </form>
   );
 };
