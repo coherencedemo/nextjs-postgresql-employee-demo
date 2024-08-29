@@ -1,6 +1,6 @@
-# Employee contact info app with Next.js and Postgres on the Coherence platform
+# Employee contact info app with Next.js and Neon on the Coherence platform
 
-Learn how to build a full-stack app with Next.js and Postgres on the Coherence platform.
+Learn how to build a full-stack app with Next.js and Postgres on the Coherence platform with Neon as a database
 
 ## Getting Started 
 
